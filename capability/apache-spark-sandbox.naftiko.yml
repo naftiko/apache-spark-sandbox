@@ -1,0 +1,102 @@
+naftiko: "1.0.0-alpha2"
+
+info:
+  label: "Apache Spark Sandbox"
+  description: "Naftiko Sandbox — wraps the Apache Spark API mocks hosted at mocks.naftiko.net. Exposes MCP, REST, and Skill adapters for AI agents and downstream tools."
+  tags:
+    - "Apache Spark"
+    - "Naftiko Sandbox"
+    - MCP
+    - Mocks
+
+binds:
+  - namespace: "sandbox-env"
+    description: "Sandbox bearer token for the Naftiko Framework MCP server."
+    location: "file:///./shared/secrets.yaml"
+    keys:
+      MCP_SERVER_TOKEN: "mcp-server-token"
+
+capability:
+  consumes:
+    - import: Apache Spark REST API
+      location: ./shared/Apache Spark REST API-consumes.yml
+
+  exposes:
+    - type: mcp
+      address: "0.0.0.0"
+      port: 3001
+      namespace: apache-spark-sandbox-tools
+      authentication:
+        type: bearer
+        token: "{{MCP_SERVER_TOKEN}}"
+      description: "Apache Spark MCP tools — backed by mocks.naftiko.net"
+      tools:
+        - name: get-application-logs
+          description: "Download event logs for all attempts as a zip"
+          call: Apache Spark REST API.get-application-logs
+        - name: get-attempt-logs
+          description: "Download event logs for a specific attempt as a zip"
+          call: Apache Spark REST API.get-attempt-logs
+          inputParameters:
+            - name: attemptId
+              in: path
+              required: true
+        - name: get-batch-operation
+          description: "Details of a specific output operation in a batch"
+          call: Apache Spark REST API.get-batch-operation
+          inputParameters:
+            - name: batchId
+              in: path
+              required: true
+            - name: outputOpId
+              in: path
+              required: true
+
+    - type: rest
+      address: "0.0.0.0"
+      port: 3002
+      namespace: apache-spark-sandbox-api
+      description: "Apache Spark REST adapter — exposes the same domain as REST resources."
+      resources:
+        - name: get-application-logs
+          path: "/get-application-logs"
+          operations:
+            - method: GET
+              call: Apache Spark REST API.get-application-logs
+        - name: get-attempt-logs
+          path: "/get-attempt-logs"
+          operations:
+            - method: GET
+              call: Apache Spark REST API.get-attempt-logs
+              inputParameters:
+                - name: attemptId
+                  in: path
+                  required: true
+        - name: get-batch-operation
+          path: "/get-batch-operation"
+          operations:
+            - method: GET
+              call: Apache Spark REST API.get-batch-operation
+              inputParameters:
+                - name: batchId
+                  in: path
+                  required: true
+                - name: outputOpId
+                  in: path
+                  required: true
+
+    - type: skill
+      address: "0.0.0.0"
+      port: 3003
+      namespace: apache-spark-sandbox-skills
+      description: "Apache Spark skill server for structured agent discovery."
+      groups:
+        - name: read-apache-spark
+          description: "Read-only Apache Spark operations."
+          skills:
+            - name: get-application-logs
+              call: Apache Spark REST API.get-application-logs
+            - name: get-attempt-logs
+              call: Apache Spark REST API.get-attempt-logs
+            - name: get-batch-operation
+              call: Apache Spark REST API.get-batch-operation

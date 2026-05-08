@@ -1,0 +1,32 @@
+naftiko: "1.0.0-alpha2"
+consumes:
+  - namespace: Apache Spark REST API
+    type: http
+    baseUri: "https://mocks.naftiko.net/rest/Apache Spark REST API/1.0.0"
+    resources:
+      - name: get-application-logs
+        path: "/applications/{{appId}}/logs"
+        operations:
+          - name: get-application-logs
+            method: GET
+      - name: get-attempt-logs
+        path: "/applications/{{appId}}/{{attemptId}}/logs"
+        operations:
+          - name: get-attempt-logs
+            method: GET
+            inputParameters:
+              - name: attemptId
+                in: path
+                required: true
+      - name: get-batch-operation
+        path: "/applications/{{appId}}/streaming/batches/{{batchId}}/operations/{{outputOpId}}"
+        operations:
+          - name: get-batch-operation
+            method: GET
+            inputParameters:
+              - name: batchId
+                in: path
+                required: true
+              - name: outputOpId
+                in: path
+                required: true
